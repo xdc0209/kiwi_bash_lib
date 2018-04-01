@@ -1,0 +1,24 @@
+编写健壮可调试的脚本指南：
+
+脚本的调用可以想象为树形结构，下文是基于此进行描述的。
+
+1.最外层的调试开关可以控制所有脚本。
+  (1)在根脚本(root_shell.sh)加载类库：source $BASE_DIR/comm_lib.sh         # 其中$BASE_DIR为root_shell.sh所在目录。##
+  (2)在其他脚本(other_shell.sh)加载类库：source $comm_lib_dir/comm_lib.sh  # 其中$comm_lib_dir为comm_lib.sh所在路径。变量comm_lib_dir在comm_lib.sh中定义并导出为环境变量。##
+  (3)调用根脚本：bash -x root_shell.sh
+  (4)脚本间的调用：bash $setx other_shell.sh                               # 变量setx在comm_lib.sh中定义并导出为环境变量。##
+
+2.内层某块代码支持永远不开启调试。
+  使用debug_state_close和debug_state_resume包围即可。
+
+3.报错可以提示脚本路径、行号、调用堆栈和进程调用堆栈。
+  (1)输出错误并退出：die "The cause of the failure."
+  (2)捕获并输出所有的错误信息：error_trap
+     如果要忽略某些命令的执行结果，只需在命令后增加|| true，示例：test -z "$PROFILEREAD" && . /etc/profile || true
+
+4.输出日志可以提示脚本路径、行号。
+  在各个脚本中定义变量log，以下方法可以输出信息到日志：
+  输出错误信息到屏幕和文件：print_error "Hello word."
+  输出提示信息到屏幕和文件：print_info  "Hello word."
+  输出错误信息到文件：      log_error   "Hello word."
+  输出提示信息到文件：      log_info    "Hello word."
